@@ -81,7 +81,7 @@ export async function GetSummonerId(password: string | undefined, port: string |
   }
   
   console.log("Reponse: ", summonerResponse);
-  let summonerId = summonerResponse.summonerId;
+  let summonerId = summonerResponse?.summonerId;
   console.log("summonerId: ", summonerId);
   return summonerId;
 }
