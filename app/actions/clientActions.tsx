@@ -112,7 +112,7 @@ export async function GetChampsOwned(password: string | undefined, port: string 
     
 }
 
-export async function GetSkinsOwned(password: string | undefined, port: string | undefined, summonerId: string, champId: number) {
+export async function GetSkinsOwned(password: string | undefined, port: string | undefined, summonerId: string | null, champId: number) {
   const headers = new Headers();
   headers.append('Authorization', 'Basic ' + btoa('riot:' + password));
   

@@ -31,26 +31,46 @@ export default function Home() {
   }
 
   async function getSkinsOwnedFromChampsOwned(){
-    let skinsOwned: string[][][] = []
-    if (summonerId && champsOwned){
-      for (const id of champsOwned) {
-        let data = await GetSkinsOwned(localStorage.getItem('clientAuthToken')||"", localStorage.getItem('clientPortNumber')||"", summonerId, id);
-        data && skinsOwned.push(data);
-      }
-      skinsOwned.sort();
+    let smmnrId = summonerId;
+    let chmpsOwned = champsOwned;
+    const clientAuthToken = localStorage.getItem('clientAuthToken')||"";
+    const clientPortNumber = localStorage.getItem('clientPortNumber')||"";
+    if (!(summonerId && champsOwned)){
+      smmnrId = await GetSummonerId(clientAuthToken, clientPortNumber);
+      setSummonerId(smmnrId);
+      chmpsOwned = await GetChampsOwned(clientAuthToken, clientPortNumber)
+      setChampsOwned(chmpsOwned);
     }
+    
+    let skinsOwned: string[][][] = []
+    for (const id of chmpsOwned) {
+      let data = await GetSkinsOwned(clientAuthToken, clientPortNumber, smmnrId, id);
+      data && skinsOwned.push(data);
+    }
+    skinsOwned.sort();
+    
     setSkinsOwned(skinsOwned);
   }
 
   async function getChampsWithNoSkinsOwned(){
-    let champsWithNoSkinsOwned: string[] = []
-    if (summonerId && champsOwned){
-      for (const id of champsOwned) {
-        let data = await GetSkinsOwned(localStorage.getItem('clientAuthToken')||"", localStorage.getItem('clientPortNumber')||"", summonerId, id);
-        data && data.length == 1 && champsWithNoSkinsOwned.push(data[0][0])
-      }
-      champsWithNoSkinsOwned.sort();
+    let smmnrId = summonerId;
+    let chmpsOwned = champsOwned;
+    const clientAuthToken = localStorage.getItem('clientAuthToken')||"";
+    const clientPortNumber = localStorage.getItem('clientPortNumber')||"";
+    if (!(summonerId && champsOwned)){
+      smmnrId = await GetSummonerId(clientAuthToken, clientPortNumber);
+      setSummonerId(smmnrId);
+      chmpsOwned = await GetChampsOwned(clientAuthToken, clientPortNumber)
+      setChampsOwned(chmpsOwned);
     }
+    
+    let champsWithNoSkinsOwned: string[] = []
+    for (const id of chmpsOwned) {
+      let data = await GetSkinsOwned(clientAuthToken, clientPortNumber, smmnrId, id);
+      data && data.length == 1 && champsWithNoSkinsOwned.push(data[0][0])
+    }
+    champsWithNoSkinsOwned.sort();
+    
     setChampsWithoutSkins(champsWithNoSkinsOwned);
   }
 
@@ -67,15 +87,6 @@ export default function Home() {
         />
         <button onClick={handleInitClient}>
           Retrieve League Client Info
-        </button>
-        <button onClick={() => {creds?(console.log(creds)):(console.log("no creds yet"))}}>
-          Console log credentials
-        </button>
-        <button onClick={async () => {setSummonerId(await GetSummonerId(localStorage.getItem('clientAuthToken')||"", localStorage.getItem('clientPortNumber')||""));}}>
-          Get Current Summoner
-        </button>
-        <button onClick={async () => {setChampsOwned(await GetChampsOwned(localStorage.getItem('clientAuthToken')||"", localStorage.getItem('clientPortNumber')||""));}}>
-          Get Champions Owned
         </button>
         <button onClick={getChampsWithNoSkinsOwned}>
           Get Champions I Own But Don't Have Skins For
