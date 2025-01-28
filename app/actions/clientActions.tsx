@@ -86,7 +86,7 @@ export async function GetSummonerId(password: string | undefined, port: string |
   return summonerId;
 }
 
-export async function GetChampsOwned(password: string | undefined, port: string | undefined) {
+export async function GetChampsOwned(password: string | undefined, port: string | undefined, summonerId: string | null) {
   const headers = new Headers();
   headers.append('Authorization', 'Basic ' + btoa('riot:' + password));
   let ownedChampsResponse;
@@ -101,15 +101,25 @@ export async function GetChampsOwned(password: string | undefined, port: string 
   }
 
   const ownedChamps: number[] = [];
-  ownedChampsResponse.map((champ:any)=> {
+  ownedChampsResponse?.map((champ:any)=> {
     ownedChamps.push(champ.id);
   })
   console.log("Owned Champions IDs: ", ownedChamps);
 
-  return ownedChamps;
-  // let data = await SkinsOwned(password, port, summonerId, ownedChamps);
-  // console.log("SkinsOwned: ", data);
-    
+  let skinsOwned: string[][][] = [];
+  let champsWithNoSkinsOwned: string[] = [];
+  for (const id of ownedChamps) {
+    let data = await GetSkinsOwned(password, port, summonerId, id);
+    data && skinsOwned.push(data);
+    data && data.length == 1 && champsWithNoSkinsOwned.push(data[0][0]);
+  }
+  skinsOwned.sort();
+  champsWithNoSkinsOwned.sort();
+
+  console.log("skinsOwned: ", skinsOwned);
+  console.log("champsWithNoSkinsOwned: ", champsWithNoSkinsOwned);
+
+  return skinsOwned;
 }
 
 export async function GetSkinsOwned(password: string | undefined, port: string | undefined, summonerId: string | null, champId: number) {
