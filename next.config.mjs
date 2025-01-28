@@ -10,7 +10,15 @@ const nextConfig = {
     }
 
     return config
-  },    
+  },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'raw.communitydragon.org',
+      },
+    ],
+  },
 };
 
 export default nextConfig;

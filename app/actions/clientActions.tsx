@@ -80,13 +80,12 @@ export async function GetSummonerId(password: string | undefined, port: string |
     console.error((e as Error).message);
   }
   
-  console.log("Reponse: ", summonerResponse);
   let summonerId = summonerResponse?.summonerId;
   console.log("summonerId: ", summonerId);
   return summonerId;
 }
 
-export async function GetChampsOwned(password: string | undefined, port: string | undefined, summonerId: string | null) {
+export async function GetSkinsForChampsOwned(password: string | undefined, port: string | undefined, summonerId: string | null) {
   const headers = new Headers();
   headers.append('Authorization', 'Basic ' + btoa('riot:' + password));
   let ownedChampsResponse;
@@ -106,20 +105,21 @@ export async function GetChampsOwned(password: string | undefined, port: string 
   })
   console.log("Owned Champions IDs: ", ownedChamps);
 
-  let skinsOwned: string[][][] = [];
-  let champsWithNoSkinsOwned: string[] = [];
+  let result: {skinsOwned: {name: string, url: string}[][], champsWithNoSkinsOwned: string[]} = {skinsOwned: [], champsWithNoSkinsOwned: []};
+  
   for (const id of ownedChamps) {
     let data = await GetSkinsOwned(password, port, summonerId, id);
-    data && skinsOwned.push(data);
-    data && data.length == 1 && champsWithNoSkinsOwned.push(data[0][0]);
+    data && result.skinsOwned.push(data);
+    data && data.length == 1 && result.champsWithNoSkinsOwned.push(data[0].name);
   }
-  skinsOwned.sort();
-  champsWithNoSkinsOwned.sort();
+  result.skinsOwned.sort(function(a,b) {
+    var x = a[0].name;
+    var y = b[0].name;
+    return x < y ? -1 : x > y ? 1 : 0;
+  });
+  result.champsWithNoSkinsOwned.sort();
 
-  console.log("skinsOwned: ", skinsOwned);
-  console.log("champsWithNoSkinsOwned: ", champsWithNoSkinsOwned);
-
-  return skinsOwned;
+  return result;
 }
 
 export async function GetSkinsOwned(password: string | undefined, port: string | undefined, summonerId: string | null, champId: number) {
@@ -138,23 +138,19 @@ export async function GetSkinsOwned(password: string | undefined, port: string |
     console.error(champId, (e as Error).message, summonerId);
     return;
   }
-  const skinsOwned:string[][] = [];
+  const skinsOwned:{name: string, url: string}[] = [];
   skinsResponse.map((skin: any) =>{
     if (skin.ownership.owned && skin.name){
-      const skinNameAndURL:string[] = [];
-      skinNameAndURL.push(skin.name);
-      skin.loadScreenPath && skinNameAndURL.push(skin.loadScreenPath.slice(28).toLowerCase());
-      skinsOwned.push(skinNameAndURL);
+      let skinURL = "";
+      const skinName = skin.name;
+      if (skin.loadScreenPath) {skinURL = skin.loadScreenPath.slice(28).toLowerCase();}
+      skinsOwned.push({name: skinName, url: skinURL});
     }
   })
   //console.log("skinsOwned: ", skinsOwned);
   return skinsOwned;
 }
 // export async function SkinsOwned(password: string | undefined, port: string | undefined, summonerId: string, ownedChamps: number[]) {
-//   // let password = 'ThT9Oai10ZzD0Sn-OwWV-Q';
-//   // let port = '57267';
-//   // summonerId = '66559580' //Ch13n
-
 //   const headers = new Headers();
 //   headers.append('Authorization', 'Basic ' + btoa('riot:' + password));
   

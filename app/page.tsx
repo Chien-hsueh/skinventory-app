@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Image from "next/image";
-import { InitClient, GetSummonerId, GetChampsOwned, GetSkinsOwned} from '@/app/actions/clientActions';
+import { InitClient, GetSummonerId, GetSkinsForChampsOwned} from '@/app/actions/clientActions';
 
 //process.env.NODE_EXTRA_CA_CERTS="@/riotgames.pem";
 process.env.NODE_TLS_REJECT_UNAUTHORIZED="0";
@@ -14,8 +14,7 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED="0";
 export default function Home() {
   const [creds, setCreds] = useState<string>("");
   const [summonerId, setSummonerId] = useState(null);
-  const [champsOwned, setChampsOwned] = useState<number[]>([]);
-  const [skinsOwned, setSkinsOwned] = useState<string[][][]>([]);
+  const [skinsOwned, setSkinsOwned] = useState<{name: string, url: string}[][]>([]);
   const [champsWithoutSkins, setChampsWithoutSkins] = useState<string[]>([]);
 
   useEffect(() => {
@@ -51,28 +50,15 @@ export default function Home() {
     if (creds == "set"){
       console.log("Getting champs and skins.");
       let smmnrId = summonerId;
-      let chmpsOwned = skinsOwned;
       const clientAuthToken = localStorage.getItem('clientAuthToken')||"";
       const clientPortNumber = localStorage.getItem('clientPortNumber')||"";
-      if (!(summonerId && champsOwned)){
+      if (!summonerId){
         smmnrId = await GetSummonerId(clientAuthToken, clientPortNumber);
         setSummonerId(smmnrId);
-        chmpsOwned = await GetChampsOwned(clientAuthToken, clientPortNumber, smmnrId)
-        // setChampsOwned(chmpsOwned);
       }
-      console.log("ChampsOwned: ", chmpsOwned);
-      
-      // let skinsOwned: string[][][] = []
-      // let champsWithNoSkinsOwned: string[] = []
-      // for (const id of chmpsOwned) {
-      //   let data = await GetSkinsOwned(clientAuthToken, clientPortNumber, smmnrId, id);
-      //   data && skinsOwned.push(data);
-      //   data && data.length == 1 && champsWithNoSkinsOwned.push(data[0][0]);
-      // }
-      // skinsOwned.sort();
-      // setSkinsOwned(skinsOwned);
-      // champsWithNoSkinsOwned.sort();
-      // setChampsWithoutSkins(champsWithNoSkinsOwned);
+      const skinsResult = await GetSkinsForChampsOwned(clientAuthToken, clientPortNumber, smmnrId);
+      setSkinsOwned(skinsResult.skinsOwned);
+      setChampsWithoutSkins(skinsResult.champsWithNoSkinsOwned);
     }
     else {console.log("waiting for creds to be ready");}
   }
@@ -81,9 +67,7 @@ export default function Home() {
     <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
       <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
         
-        <button onClick={getSkinsOwnedFromChampsOwned}>
-          Get Champions I Own But Don't Have Skins For And All Skins Owned
-        </button>
+        <h1>Skinventory</h1>
 
         {champsWithoutSkins.length!=0 ?(
           <div>{champsWithoutSkins.map((champ) => <span>{champ}. </span>)}</div>
@@ -92,9 +76,9 @@ export default function Home() {
         {skinsOwned.length!=0 ? (
           skinsOwned.map( (champ) => 
             (<div>
-              <h1>{champ[0][0]}</h1>
+              <h1>{champ[0].name}</h1>
               {/*champ.splice(0,1)*/}
-              {champ.length > 1 && champ.map((skin, index) => index > 0 && <span>{skin[0]}<img alt="Skin splash" src={"https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets"+skin[1]} ></img></span>)}
+              {champ.length > 1 && champ.map((skin, index) => index > 0 && <span>{skin.name}<Image alt="Skin splash" src={"https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets"+skin.url} width={308} height={560}></Image></span>)}
             </div>))
         ):(<p>p</p>)}
         
