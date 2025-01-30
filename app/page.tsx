@@ -3,13 +3,10 @@
 import { useEffect, useState } from 'react';
 import Image from "next/image";
 import { InitClient, GetSummonerId, GetSkinsForChampsOwned} from '@/app/actions/clientActions';
+import loadingSVG from '@/public/assets/loading.svg'
 
 //process.env.NODE_EXTRA_CA_CERTS="@/riotgames.pem";
 process.env.NODE_TLS_REJECT_UNAUTHORIZED="0";
-// console.log("NODE ENV");
-// console.log(process.env.NODE_ENV);
-// console.log(process.env.NODE_EXTRA_CA_CERTS);
-// console.log(process.env.NODE_TLS_REJECT_UNAUTHORIZED);
 
 export default function Home() {
   const [creds, setCreds] = useState<string>("");
@@ -27,8 +24,8 @@ export default function Home() {
 
   async function handleInitClient(){
     console.log("Checking if League Client credentials already exist");
-    let clientAuthToken = localStorage.getItem('clientAuthToken')||"";
-    let clientPortNumber = localStorage.getItem('clientPortNumber')||"";
+    const clientAuthToken = localStorage.getItem('clientAuthToken')||"";
+    const clientPortNumber = localStorage.getItem('clientPortNumber')||"";
     let smmnrId = null;
     if (clientAuthToken != "" && clientPortNumber != "") {smmnrId= await GetSummonerId(clientAuthToken, clientPortNumber)};
     console.log("smmnrId received: ", smmnrId);
@@ -64,73 +61,43 @@ export default function Home() {
   }
 
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        
-        <h1>Skinventory</h1>
+    <div className="grid items-center justify-items-center px-2 sm:px-20 text-center font-[family-name:var(--font-spiegel)]">
+      <div className="mx-auto max-w-2xl py-32 sm:py-48 lg:py-56">
+        <div className="px-3 py-1 text-sm/6 text-gold4 font-[family-name:var(--font-beaufort)]">
+          League of Leagends Skin Inventory Tool    
+        </div>
+        <h1 className="text-5xl tracking-tight text-balance text-blue1 sm:text-7xl font-[family-name:var(--font-beaufort)]">SKIN<span className="text-blue3">VENTORY</span></h1>
+        <p className="mt-8 text-lg font-medium text-pretty sm:text-xl/8">Welcome. 
+          Make sure to have your League of Legends game client open and logged into your account. 
+          Skinventory will search through your Windows processes to find info to connect to the League client's API. 
+          Once that's done, it'll ask the API for a bunch of data and show you the champions you own but do not have 
+          a single skin for as well as a list of all champions and skins you own.</p>
+      </div>
 
+      <main className="flex flex-col row-start-2 gap-8 items-center">
         {champsWithoutSkins.length!=0 ?(
-          <div>{champsWithoutSkins.map((champ) => <span>{champ}. </span>)}</div>
-        ):<p>p</p>}
+          <div><h2 className="text-3xl sm:text-5xl py-8 text-gold1 font-[family-name:var(--font-beaufort)]">Champions you own but do not have any skins for</h2>
+            <p className="text-md sm:text-xl">{champsWithoutSkins.map((champ) => <span>{champ}. </span>)}</p></div>
+        ):(<span className="flex flex-col items-center"><Image alt="Loading" src={loadingSVG} width={100} height={100}></Image><p>Connecting to the League Client API...</p></span>)}
 
-        {skinsOwned.length!=0 ? (
-          skinsOwned.map( (champ) => 
+        {skinsOwned.length!=0 && (
+          <div>
+          <h2 className="text-3xl sm:text-5xl pt-8 text-gold1 font-[family-name:var(--font-beaufort)]">Champions and skins you own</h2>
+          {skinsOwned.map( (champ) => 
             (<div>
-              <h1>{champ[0].name}</h1>
+              <h2 className="text-2xl sm:text-3xl pb-2 pt-6 text-gold1 font-[family-name:var(--font-beaufort)]">{champ[0].name}</h2>
               {/*champ.splice(0,1)*/}
-              {champ.length > 1 && champ.map((skin, index) => index > 0 && <span>{skin.name}<Image alt="Skin splash" src={"https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets"+skin.url} width={308} height={560}></Image></span>)}
-            </div>))
-        ):(<p>p</p>)}
-        
+              <div className="flex flex-wrap flex-row gap-x-8 row-start-2 justify-center items-center">
+              {champ.length > 1 && champ.map((skin, index) => index > 0 && <span>
+                <h2 className="text-xl sm:text-2xl text-gold1">{skin.name}</h2>
+                <Image alt="Skin splash" src={"https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets"+skin.url} width={308} height={560} priority={true}></Image>
+              </span>)}
+              </div>
+            </div>))}
+            </div>
+        )}
       </main>
 
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
     </div>
   );
 }
